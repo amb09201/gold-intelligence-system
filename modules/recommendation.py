@@ -1,50 +1,58 @@
 """
-Recommendation module: generates buy/sell/hold signals from analytics output.
+==========================================================
+Gold Intelligence System
+Recommendation Result Model
+==========================================================
 """
 
-from modules.logger import get_logger
-
-logger = get_logger(__name__)
+from dataclasses import dataclass, field
 
 
-def generate_recommendation(trend: str, volatility: float, volatility_threshold: float = 20.0) -> dict:
+@dataclass
+class RecommendationResult:
     """
-    Generate a simple recommendation based on trend and volatility.
-
-    Returns:
-        {
-            "action": "BUY" | "SELL" | "HOLD",
-            "confidence": "HIGH" | "MEDIUM" | "LOW",
-            "reason": str
-        }
+    Final recommendation produced by the Recommendation Engine.
     """
-    if trend == "up" and volatility < volatility_threshold:
-        return {
-            "action": "BUY",
-            "confidence": "HIGH",
-            "reason": "Upward trend with stable volatility.",
-        }
-    elif trend == "up":
-        return {
-            "action": "BUY",
-            "confidence": "MEDIUM",
-            "reason": "Upward trend but volatility is elevated.",
-        }
-    elif trend == "down" and volatility < volatility_threshold:
-        return {
-            "action": "SELL",
-            "confidence": "HIGH",
-            "reason": "Downward trend with stable volatility.",
-        }
-    elif trend == "down":
-        return {
-            "action": "SELL",
-            "confidence": "MEDIUM",
-            "reason": "Downward trend but volatility is elevated.",
-        }
-    else:
-        return {
-            "action": "HOLD",
-            "confidence": "LOW",
-            "reason": "No clear trend detected.",
-        }
+
+    score: int
+
+    confidence: int
+
+    recommendation: str
+
+    reasons: list[str] = field(default_factory=list)
+
+    warnings: list[str] = field(default_factory=list)
+
+    analytics: dict = field(default_factory=dict)
+
+    def __str__(self):
+
+        output = []
+
+        output.append("=" * 60)
+        output.append("GOLD INTELLIGENCE RECOMMENDATION")
+        output.append("=" * 60)
+
+        output.append(f"Recommendation : {self.recommendation}")
+        output.append(f"Buy Score      : {self.score}/100")
+        output.append(f"Confidence     : {self.confidence}%")
+
+        output.append("")
+
+        if self.reasons:
+
+            output.append("Reasons")
+
+            for reason in self.reasons:
+                output.append(f"✔ {reason}")
+
+        if self.warnings:
+
+            output.append("")
+            output.append("Warnings")
+
+            for warning in self.warnings:
+                output.append(f"⚠ {warning}")
+
+        return "\n".join(output)
