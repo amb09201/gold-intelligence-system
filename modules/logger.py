@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Simple timestamped logger, matching the log() helper from the Colab notebook.
 """
 
@@ -19,23 +18,3 @@ def safe_execute(function, *args, **kwargs):
     except Exception as ex:
         log(str(ex), "ERROR")
         return None
-=======
-Logging Module
-"""
-
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-logger = logging.getLogger("Gold Intelligence")
-
-
-from modules.logger import logger
-
-logger.info("Fetching gold rates...")
-logger.warning("Duplicate prices detected.")
-logger.error("API unavailable.")
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52

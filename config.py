@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Gold Intelligence System — Configuration
 
 Values that are secret (spreadsheet ID, bot token, chat ID, service account
@@ -16,24 +15,10 @@ except ImportError:
     pass
 
 CONFIG = {
-=======
-========================================================
-Gold Intelligence System
-Configuration Module
-========================================================
-"""
-
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class Config:
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
 
     # -----------------------------
     # Google Sheets
     # -----------------------------
-<<<<<<< HEAD
     "SPREADSHEET_ID": os.getenv("SPREADSHEET_ID", "1OWl5vSFV3Gbr-M6qL5fTvO6igzmb484mYWUvDkzYm3U"),
     "WORKSHEET_NAME": os.getenv("WORKSHEET_NAME", "Gold_Rates"),
     "DASHBOARD_NAME": os.getenv("DASHBOARD_NAME", "Dashboard"),
@@ -48,22 +33,6 @@ class Config:
     # GraphQL API (Joyalukkas)
     # -----------------------------
     "GRAPHQL_URL": (
-=======
-    SPREADSHEET_ID = "1OWl5vSFV3Gbr-M6qL5fTvO6igzmb484mYWUvDkzYm3U"
-
-    GOLD_RATES_SHEET = "Gold_Rates"
-
-    DASHBOARD_SHEET = "Dashboard"
-
-    SETTINGS_SHEET = "Settings"
-
-    LOGS_SHEET = "Logs"
-
-    # -----------------------------
-    # API
-    # -----------------------------
-    GRAPHQL_URL = (
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
         "https://www.joyalukkas.in/graphql"
         "?query=query+getgoldrates{"
         "getgoldrates{"
@@ -78,7 +47,6 @@ class Config:
         "__typename}}"
         "&operationName=getgoldrates"
         "&variables={}"
-<<<<<<< HEAD
     ),
 
     # -----------------------------
@@ -86,16 +54,10 @@ class Config:
     # -----------------------------
     "BUY_TARGET": int(os.getenv("BUY_TARGET", 13000)),
     "CURRENCY": "₹",
-=======
-    )
-
-    USER_AGENT = "Gold Intelligence System"
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
 
     # -----------------------------
     # Analytics
     # -----------------------------
-<<<<<<< HEAD
     "SHORT_MA": 7,
     "LONG_MA": 30,
     "VERY_LONG_MA": 90,
@@ -104,28 +66,11 @@ class Config:
     # Duplicate Detection
     # -----------------------------
     "SAVE_IF_NO_CHANGE": os.getenv("SAVE_IF_NO_CHANGE", "False") == "True",
-=======
-    SHORT_WINDOW = 7
-
-    MEDIUM_WINDOW = 30
-
-    LONG_WINDOW = 90
-
-    BUY_TARGET = 13000
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
 
     # -----------------------------
     # Telegram
     # -----------------------------
-<<<<<<< HEAD
     "ENABLE_TELEGRAM": os.getenv("ENABLE_TELEGRAM", "True") == "True",
     "BOT_TOKEN": os.getenv("BOT_TOKEN", ""),
     "CHAT_ID": os.getenv("CHAT_ID", ""),
 }
-=======
-    ENABLE_TELEGRAM = False
-
-    BOT_TOKEN = ""
-
-    CHAT_ID = ""
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
