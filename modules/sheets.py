@@ -7,7 +7,7 @@ Silver | Platinum | Gold 22K Change | Silver Change | Buy Score |
 Recommendation | Notes
 """
 
-from datetime import datetime
+from modules.utils import now_ist
 
 import gspread
 import pandas as pd
@@ -98,7 +98,7 @@ def save_to_google_sheet(gold, buy_score="", recommendation_text="", notes=""):
     worksheet = get_worksheet()
 
     gold_change, silver_change = calculate_changes(gold)
-    now = datetime.now()
+    now = now_ist()
 
     worksheet.append_row([
         now.strftime("%Y-%m-%d %H:%M:%S"),

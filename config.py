@@ -68,6 +68,12 @@ CONFIG = {
     "SAVE_IF_NO_CHANGE": os.getenv("SAVE_IF_NO_CHANGE", "False") == "True",
 
     # -----------------------------
+    # Alerting (overridable from the "Settings" sheet tab)
+    # -----------------------------
+    "ALERT_ON_PRICE_CHANGE": True,
+    "DAILY_NOTIFICATION_TIME": "9:00",
+
+    # -----------------------------
     # Telegram
     # -----------------------------
     "ENABLE_TELEGRAM": os.getenv("ENABLE_TELEGRAM", "True") == "True",

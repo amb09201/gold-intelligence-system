@@ -3,7 +3,7 @@ Telegram module — sends a formatted rate + recommendation alert.
 """
 
 import requests
-from datetime import datetime
+from modules.utils import now_ist
 
 from config import CONFIG
 from modules.logger import log
@@ -38,7 +38,7 @@ def send_message(text):
 
 def format_message(gold, gold_change, silver_change, recommendation):
     """Build the pretty Telegram message shown in the project spec."""
-    today = datetime.now().strftime("%d %b %Y")
+    today = now_ist().strftime("%d %b %Y")
     currency = CONFIG["CURRENCY"]
 
     def fmt_change(value):

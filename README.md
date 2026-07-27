@@ -3,7 +3,7 @@
 Automated tracker for Joyalukkas gold/silver rates: fetches live rates,
 logs history to Google Sheets, computes a Buy Score recommendation, updates
 a live Dashboard tab, and sends a Telegram alert — twice a day via GitHub
-Actions (09:00 and 14:30 IST).
+Actions (09:00, 12:00, and 14:30 IST).
 
 ## Pipeline
 
@@ -100,8 +100,8 @@ Add these repository secrets under **Settings → Secrets and variables → Acti
 | `BOT_TOKEN` | Your Telegram bot token from @BotFather |
 | `CHAT_ID` | Your Telegram chat ID |
 
-The workflow (`.github/workflows/daily.yml`) runs automatically at 09:00 and
-14:30 IST daily, and can also be triggered manually from the **Actions** tab
+The workflow (`.github/workflows/daily.yml`) runs automatically at 09:00,
+12:00, and 14:30 IST daily, and can also be triggered manually from the **Actions** tab
 using **Run workflow**.
 
 ## Running tests

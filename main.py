@@ -12,17 +12,22 @@ Pipeline:
 
 import sys
 
+from config import CONFIG
 from modules.api import get_gold_rates
 from modules.sheets import should_save, save_to_google_sheet, read_history, calculate_changes
 from modules.analytics import build_analytics_summary
 from modules.recommendation import build_recommendation
 from modules.dashboard import update_dashboard
 from modules.telegram_bot import send_message, format_message
+from modules.settings import apply_settings
 from modules.logger import log
 
 
 def run():
     log("Application started")
+
+    # 0. Load overrides from the "Settings" sheet tab (BUY_TARGET, ENABLE_TELEGRAM, etc.)
+    apply_settings()
 
     # 1. Fetch live rates
     gold = get_gold_rates()
@@ -60,9 +65,16 @@ def run():
     except Exception as exc:
         log(f"Dashboard update failed: {exc}", "ERROR")
 
-    # 6. Telegram alert
-    message = format_message(gold, gold_change, silver_change, recommendation)
-    send_message(message)
+    # 6. Telegram alert — respect ALERT_ON_PRICE_CHANGE from the Settings sheet.
+    # If enabled, only send when the price actually moved since last run.
+    price_changed = (gold_change != 0) or (silver_change != 0)
+    should_alert = (not CONFIG.get("ALERT_ON_PRICE_CHANGE", True)) or price_changed
+
+    if should_alert:
+        message = format_message(gold, gold_change, silver_change, recommendation)
+        send_message(message)
+    else:
+        log("ALERT_ON_PRICE_CHANGE is True and price is unchanged; skipping Telegram alert.")
 
     log("Application finished successfully")
 

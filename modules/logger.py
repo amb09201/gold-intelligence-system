@@ -1,14 +1,15 @@
 """
 Simple timestamped logger, matching the log() helper from the Colab notebook.
+All timestamps are in IST, regardless of the server/runner's local timezone.
 """
 
-from datetime import datetime
+from modules.utils import now_ist
 
 
 def log(message, level="INFO"):
-    """Print a timestamped log line, e.g. [INFO] 2026-07-27 12:00:00 - message"""
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{level}] {now} - {message}")
+    """Print a timestamped log line, e.g. [INFO] 2026-07-27 12:00:00 IST - message"""
+    now = now_ist().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{level}] {now} IST - {message}")
 
 
 def safe_execute(function, *args, **kwargs):

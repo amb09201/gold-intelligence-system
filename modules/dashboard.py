@@ -4,7 +4,7 @@ tab of the same Google Spreadsheet, so you get an always-up-to-date
 snapshot without opening the raw Gold_Rates history tab.
 """
 
-from datetime import datetime
+from modules.utils import now_ist
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -47,7 +47,7 @@ def update_dashboard(gold, analytics_summary, recommendation):
     rates, moving averages, high/low, volatility, buy score, recommendation.
     """
     ws = get_dashboard_worksheet()
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = now_ist().strftime("%Y-%m-%d %H:%M:%S") + " IST"
 
     rows = [
         ["Metric", "Value"],
