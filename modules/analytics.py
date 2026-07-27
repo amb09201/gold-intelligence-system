@@ -1,52 +1,301 @@
 """
-Analytics module: computes trends and statistics from gold price history.
+==========================================================
+Gold Intelligence System
+Analytics Module
+==========================================================
+
+Author : Mahesh Babu
+
+Description
+-----------
+Provides all analytical calculations used by the application.
+
+Responsibilities
+----------------
+✔ Moving averages
+✔ Highest / Lowest price
+✔ Daily changes
+✔ Trend detection
+✔ Consecutive rise/fall detection
+✔ Volatility
+✔ Dashboard metrics
 """
 
 import pandas as pd
 
-import config
-from modules.logger import get_logger
-
-logger = get_logger(__name__)
+from config import Config
+from modules.logger import logger
 
 
-def to_dataframe(rows: list) -> pd.DataFrame:
-    """Convert a list of price records into a pandas DataFrame."""
-    df = pd.DataFrame(rows)
-    if "timestamp" in df.columns:
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.sort_values("timestamp")
-    return df
+class Analytics:
+
+    def __init__(self, history: pd.DataFrame):
+
+        self.history = history.copy()
+
+    # ======================================================
+    # Utility
+    # ======================================================
+
+    def _series(self, column):
+
+        if self.history.empty:
+            return pd.Series(dtype=float)
+
+        return self.history[column].dropna()
+
+    # ======================================================
+    # Moving Average
+    # ======================================================
+
+    def moving_average(self, column, window):
+
+        values = self._series(column)
+
+        if len(values) == 0:
+            return None
+
+        return round(values.tail(window).mean(), 2)
+
+    # ======================================================
+    # Highest
+    # ======================================================
+
+    def highest(self, column, window=None):
+
+        values = self._series(column)
+
+        if len(values) == 0:
+            return None
+
+        if window:
+            values = values.tail(window)
+
+        return float(values.max())
+
+    # ======================================================
+    # Lowest
+    # ======================================================
+
+    def lowest(self, column, window=None):
+
+        values = self._series(column)
+
+        if len(values) == 0:
+            return None
+
+        if window:
+            values = values.tail(window)
+
+        return float(values.min())
+
+    # ======================================================
+    # Volatility
+    # ======================================================
+
+    def volatility(self, column, window=30):
+
+        values = self._series(column)
+
+        if len(values) < 2:
+            return None
+
+        values = values.tail(window)
+
+        return round(values.std(), 2)
+
+    # ======================================================
+    # Daily Change
+    # ======================================================
+
+    def latest_change(self, column):
+
+        values = self._series(column)
+
+        if len(values) < 2:
+            return 0
+
+        return float(values.iloc[-1] - values.iloc[-2])
+
+    # ======================================================
+    # Consecutive Down Days
+    # ======================================================
+
+    def consecutive_down(self, column):
+
+        values = self._series(column)
+
+        if len(values) < 2:
+            return 0
+
+        count = 0
+
+        for i in range(len(values)-1, 0, -1):
+
+            if values.iloc[i] < values.iloc[i-1]:
+                count += 1
+            else:
+                break
+
+        return count
+
+    # ======================================================
+    # Consecutive Up Days
+    # ======================================================
+
+    def consecutive_up(self, column):
+
+        values = self._series(column)
+
+        if len(values) < 2:
+            return 0
+
+        count = 0
+
+        for i in range(len(values)-1, 0, -1):
+
+            if values.iloc[i] > values.iloc[i-1]:
+                count += 1
+            else:
+                break
+
+        return count
+
+    # ======================================================
+    # Trend
+    # ======================================================
+
+    def trend(self, column):
+
+        values = self._series(column)
+
+        if len(values) < 3:
+            return "UNKNOWN"
+
+        last3 = values.tail(3).tolist()
+
+        if last3[2] > last3[1] > last3[0]:
+            return "UP"
+
+        if last3[2] < last3[1] < last3[0]:
+            return "DOWN"
+
+        return "SIDEWAYS"
+
+    # ======================================================
+    # Percentage Change
+    # ======================================================
+
+    def percent_change(self, column):
+
+        values = self._series(column)
+
+        if len(values) < 2:
+            return 0
+
+        previous = values.iloc[-2]
+
+        current = values.iloc[-1]
+
+        if previous == 0:
+            return 0
+
+        pct = ((current - previous) / previous) * 100
+
+        return round(pct, 2)
+
+    # ======================================================
+    # Distance From Target
+    # ======================================================
+
+    def distance_from_target(self, current_price):
+
+        return current_price - Config.BUY_TARGET
+
+    # ======================================================
+    # Dashboard Metrics
+    # ======================================================
+
+    def dashboard_metrics(self):
+
+        logger.info("Calculating dashboard metrics")
+
+        latest_gold22 = self._series("Gold 22K").iloc[-1]
+        latest_gold24 = self._series("Gold 24K").iloc[-1]
+        latest_silver = self._series("Silver").iloc[-1]
+        latest_platinum = self._series("Platinum").iloc[-1]
+
+        return {
+
+            "latest_gold22": latest_gold22,
+
+            "latest_gold24": latest_gold24,
+
+            "latest_silver": latest_silver,
+
+            "latest_platinum": latest_platinum,
+
+            "gold_change": self.latest_change("Gold 22K"),
+
+            "silver_change": self.latest_change("Silver"),
+
+            "avg7": self.moving_average(
+                "Gold 22K",
+                Config.SHORT_WINDOW
+            ),
+
+            "avg30": self.moving_average(
+                "Gold 22K",
+                Config.MEDIUM_WINDOW
+            ),
+
+            "avg90": self.moving_average(
+                "Gold 22K",
+                Config.LONG_WINDOW
+            ),
+
+            "highest": self.highest(
+                "Gold 22K",
+                Config.LONG_WINDOW
+            ),
+
+            "lowest": self.lowest(
+                "Gold 22K",
+                Config.LONG_WINDOW
+            ),
+
+            "volatility": self.volatility(
+                "Gold 22K",
+                Config.MEDIUM_WINDOW
+            ),
+
+            "trend": self.trend(
+                "Gold 22K"
+            ),
+
+            "consecutive_down": self.consecutive_down(
+                "Gold 22K"
+            ),
+
+            "consecutive_up": self.consecutive_up(
+                "Gold 22K"
+            ),
+
+            "percent_change": self.percent_change(
+                "Gold 22K"
+            )
+
+        }
 
 
-def moving_averages(df: pd.DataFrame, price_col: str = "price") -> pd.DataFrame:
-    """Add short and long moving average columns to the DataFrame."""
-    df = df.copy()
-    df["ma_short"] = df[price_col].rolling(window=config.SHORT_MA_WINDOW, min_periods=1).mean()
-    df["ma_long"] = df[price_col].rolling(window=config.LONG_MA_WINDOW, min_periods=1).mean()
-    return df
-
-
-def compute_volatility(df: pd.DataFrame, price_col: str = "price") -> float:
-    """Compute the standard deviation of prices as a simple volatility measure."""
-    if df.empty:
-        return 0.0
-    return float(df[price_col].std())
-
-
-def compute_trend(df: pd.DataFrame, price_col: str = "price") -> str:
-    """
-    Determine the overall trend ('up', 'down', 'flat') based on
-    the short vs long moving averages.
-    """
-    if df.empty or len(df) < 2:
-        return "flat"
-
-    df = moving_averages(df, price_col)
-    latest = df.iloc[-1]
-
-    if latest["ma_short"] > latest["ma_long"]:
-        return "up"
-    elif latest["ma_short"] < latest["ma_long"]:
-        return "down"
-    return "flat"
+        analytics.trend("Gold 22K")
+        
+        analytics.volatility("Gold 22K")
+        
+        analytics.highest("Gold 22K", 90)
+        
+        analytics.lowest("Gold 22K", 90)
+        
+        analytics.percent_change("Gold 22K")
+        
+        analytics.consecutive_down("Gold 22K")
