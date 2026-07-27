@@ -1,51 +1,76 @@
 """
-Sheets module: reads/writes gold price data to Google Sheets.
+==========================================================
+Google Sheets Module
+==========================================================
 """
 
+from datetime import datetime
+
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
+from google.oauth2.service_account import Credentials
 
-import config
-from modules.logger import get_logger
-
-logger = get_logger(__name__)
-
-SCOPE = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive",
-]
+from config import Config
+from modules.logger import logger
 
 
-def get_client():
-    """Authenticate and return a gspread client."""
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        config.GOOGLE_SHEETS_CREDENTIALS_JSON, SCOPE
-    )
-    return gspread.authorize(creds)
+class GoogleSheets:
 
+    def __init__(self, credentials_file: str):
 
-def get_worksheet():
-    """Open the configured spreadsheet/worksheet."""
-    client = get_client()
-    sheet = client.open_by_key(config.SPREADSHEET_ID)
-    try:
-        return sheet.worksheet(config.SHEET_NAME)
-    except gspread.WorksheetNotFound:
-        return sheet.add_worksheet(title=config.SHEET_NAME, rows=1000, cols=10)
+        self.credentials_file = credentials_file
 
+        self.client = None
 
-def append_row(row: list):
-    """Append a single row of data to the sheet."""
-    try:
-        ws = get_worksheet()
-        ws.append_row(row)
-        logger.info(f"Appended row to sheet: {row}")
-    except Exception as exc:
-        logger.error(f"Failed to append row to Google Sheets: {exc}")
-        raise
+        self.workbook = None
 
+        self.gold_sheet = None
 
-def get_all_rows() -> list:
-    """Retrieve all rows currently in the sheet."""
-    ws = get_worksheet()
-    return ws.get_all_records()
+        self.dashboard_sheet = None
+
+        self.logs_sheet = None
+
+        self.settings_sheet = None
+
+    # -------------------------------------------------
+    # Connect
+    # -------------------------------------------------
+
+    def connect(self):
+
+        scopes = [
+
+            "https://www.googleapis.com/auth/spreadsheets",
+
+            "https://www.googleapis.com/auth/drive"
+
+        ]
+
+        credentials = Credentials.from_service_account_file(
+            self.credentials_file,
+            scopes=scopes
+        )
+
+        self.client = gspread.authorize(credentials)
+
+        self.workbook = self.client.open_by_key(
+            Config.SPREADSHEET_ID
+        )
+
+        self.gold_sheet = self.workbook.worksheet(
+            Config.GOLD_RATES_SHEET
+        )
+
+        self.dashboard_sheet = self.workbook.worksheet(
+            Config.DASHBOARD_SHEET
+        )
+
+        self.logs_sheet = self.workbook.worksheet(
+            Config.LOGS_SHEET
+        )
+
+        self.settings_sheet = self.workbook.worksheet(
+            Config.SETTINGS_SHEET
+        )
+
+        logger.info("Connected to Google Sheets")
