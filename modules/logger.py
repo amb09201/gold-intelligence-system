@@ -1,35 +1,20 @@
 """
-Centralized logging setup for the Gold Intelligence System.
+Simple timestamped logger, matching the log() helper from the Colab notebook.
 """
 
-import logging
-import sys
-
-import config
+from datetime import datetime
 
 
-def get_logger(name: str) -> logging.Logger:
-    """Return a configured logger instance."""
-    logger = logging.getLogger(name)
+def log(message, level="INFO"):
+    """Print a timestamped log line, e.g. [INFO] 2026-07-27 12:00:00 - message"""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{level}] {now} - {message}")
 
-    if not logger.handlers:
-        level = getattr(logging, config.LOG_LEVEL.upper(), logging.INFO)
-        logger.setLevel(level)
 
-        formatter = logging.Formatter(
-            "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
-        )
-
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
-
-        try:
-            file_handler = logging.FileHandler(config.LOG_FILE)
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
-        except OSError:
-            # File system may be read-only (e.g. some CI environments)
-            pass
-
-    return logger
+def safe_execute(function, *args, **kwargs):
+    """Execute a function safely, logging any exception instead of crashing."""
+    try:
+        return function(*args, **kwargs)
+    except Exception as ex:
+        log(str(ex), "ERROR")
+        return None

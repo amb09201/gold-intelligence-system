@@ -1,19 +1,15 @@
 # Python
 __pycache__/
 *.pyc
-*.pyo
 .venv/
 venv/
 
-# Environment / secrets
+# Secrets
 .env
-credentials.json
+service_account.json
 
 # Logs
 *.log
-
-# Dashboard output
-dashboard.html
 
 # OS
 .DS_Store

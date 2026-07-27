@@ -1,49 +1,46 @@
 """
-API module: fetches gold price data from an external provider.
+API module — fetches live metal rates from the Joyalukkas GraphQL endpoint.
 """
 
 import requests
 
-import config
-from modules.logger import get_logger
-
-logger = get_logger(__name__)
+from config import CONFIG
+from modules.logger import log
 
 
-def fetch_gold_price() -> dict:
+def get_gold_rates():
     """
-    Fetch the current gold price data.
+    Returns today's gold/silver/platinum rates from the Joyalukkas GraphQL API.
 
-    Returns a dict like:
+    Returns a dict:
         {
-            "price": 2385.12,
-            "currency": "USD",
-            "timestamp": "2026-07-27T00:00:00+00:00"
+            "rate_time": "...",
+            "branch": "...",
+            "gold22": int, "gold24": int, "gold18": int, "gold14": int,
+            "silver": int, "platinum": int,
         }
-    Raises requests.RequestException on network/API failure.
+    Raises requests.HTTPError / KeyError on failure — caller should handle.
     """
-    headers = {"x-access-token": config.GOLD_API_KEY, "Content-Type": "application/json"}
+    response = requests.get(
+        CONFIG["GRAPHQL_URL"],
+        headers={"User-Agent": "Mozilla/5.0"},
+        timeout=30,
+    )
+    response.raise_for_status()
 
-    try:
-        response = requests.get(config.GOLD_API_URL, headers=headers, timeout=15)
-        response.raise_for_status()
-        data = response.json()
+    payload = response.json()["data"]["getgoldrates"]
+    row = payload["Data"][0]
 
-        return {
-            "price": data.get("price"),
-            "currency": "USD",
-            "timestamp": data.get("timestamp"),
-            "raw": data,
-        }
-    except requests.RequestException as exc:
-        logger.error(f"Failed to fetch gold price: {exc}")
-        raise
+    rates = {
+        "rate_time": payload["metal_rate_time"],
+        "branch": row["BRANCH_NAME"],
+        "gold22": int(row["GOLD_22KT_RATE"]),
+        "gold24": int(row["GOLD_24KT_RATE"]),
+        "gold18": int(row["GOLD_18KT_RATE"]),
+        "gold14": int(row["GOLD_14KT_RATE"]),
+        "silver": int(row["SILVER_RATE"]),
+        "platinum": int(row["PLATINUM_RATE"]),
+    }
 
-
-def fetch_historical_prices(days: int = 30) -> list:
-    """
-    Placeholder for fetching historical gold prices.
-    Replace with your chosen provider's historical endpoint.
-    """
-    logger.warning("fetch_historical_prices is not yet implemented for a real provider.")
-    return []
+    log(f"Fetched live rates: Gold22={rates['gold22']} Silver={rates['silver']}")
+    return rates

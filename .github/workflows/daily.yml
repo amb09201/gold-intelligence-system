@@ -1,9 +1,11 @@
-name: Daily Gold Intelligence Run
+name: Gold Intelligence Daily Run
 
 on:
   schedule:
-    # Runs every day at 06:00 UTC — adjust as needed
-    - cron: '0 6 * * *'
+    # 09:00 IST = 03:30 UTC
+    - cron: '30 3 * * *'
+    # 14:30 IST = 09:00 UTC
+    - cron: '0 9 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -24,13 +26,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Write Google service account credentials
+        run: |
+          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > service_account.json
+
       - name: Run main script
         env:
-          GOLD_API_KEY: ${{ secrets.GOLD_API_KEY }}
-          GOLD_API_URL: ${{ secrets.GOLD_API_URL }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-          GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
+          WORKSHEET_NAME: Gold_Rates
+          DASHBOARD_NAME: Dashboard
+          GOOGLE_SERVICE_ACCOUNT_FILE: service_account.json
+          BUY_TARGET: ${{ secrets.BUY_TARGET }}
+          ENABLE_TELEGRAM: "True"
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
           python main.py
+
+      - name: Clean up credentials file
+        if: always()
+        run: rm -f service_account.json

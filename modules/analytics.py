@@ -1,52 +1,64 @@
 """
-Analytics module: computes trends and statistics from gold price history.
+Analytics module — moving averages, highs/lows, volatility, and trend
+detection over the Gold_Rates history.
 """
 
-import pandas as pd
-
-import config
-from modules.logger import get_logger
-
-logger = get_logger(__name__)
+from config import CONFIG
 
 
-def to_dataframe(rows: list) -> pd.DataFrame:
-    """Convert a list of price records into a pandas DataFrame."""
-    df = pd.DataFrame(rows)
-    if "timestamp" in df.columns:
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.sort_values("timestamp")
-    return df
-
-
-def moving_averages(df: pd.DataFrame, price_col: str = "price") -> pd.DataFrame:
-    """Add short and long moving average columns to the DataFrame."""
-    df = df.copy()
-    df["ma_short"] = df[price_col].rolling(window=config.SHORT_MA_WINDOW, min_periods=1).mean()
-    df["ma_long"] = df[price_col].rolling(window=config.LONG_MA_WINDOW, min_periods=1).mean()
-    return df
-
-
-def compute_volatility(df: pd.DataFrame, price_col: str = "price") -> float:
-    """Compute the standard deviation of prices as a simple volatility measure."""
+def moving_average(df, column, days):
+    """Average of the last `days` non-null values in `column`."""
     if df.empty:
-        return 0.0
-    return float(df[price_col].std())
+        return None
+
+    values = df[column].dropna()
+    if len(values) == 0:
+        return None
+
+    return round(values.tail(days).mean(), 2)
 
 
-def compute_trend(df: pd.DataFrame, price_col: str = "price") -> str:
-    """
-    Determine the overall trend ('up', 'down', 'flat') based on
-    the short vs long moving averages.
-    """
-    if df.empty or len(df) < 2:
-        return "flat"
+def highest_price(df, column):
+    if df.empty:
+        return None
+    return df[column].max()
 
-    df = moving_averages(df, price_col)
-    latest = df.iloc[-1]
 
-    if latest["ma_short"] > latest["ma_long"]:
-        return "up"
-    elif latest["ma_short"] < latest["ma_long"]:
-        return "down"
-    return "flat"
+def lowest_price(df, column):
+    if df.empty:
+        return None
+    return df[column].min()
+
+
+def volatility(df, column):
+    if df.empty:
+        return None
+    return round(df[column].std(), 2)
+
+
+def trend(df, column="Gold 22K"):
+    """Simple 3-point trend: UP / DOWN / SIDEWAYS / UNKNOWN (if <3 rows)."""
+    if len(df) < 3:
+        return "UNKNOWN"
+
+    prices = df[column].tail(3).tolist()
+
+    if prices[2] > prices[1] > prices[0]:
+        return "UP"
+    if prices[2] < prices[1] < prices[0]:
+        return "DOWN"
+    return "SIDEWAYS"
+
+
+def build_analytics_summary(df):
+    """Bundle all analytics into a single dict for reuse by recommendation/dashboard."""
+    return {
+        "avg7": moving_average(df, "Gold 22K", CONFIG["SHORT_MA"]),
+        "avg30": moving_average(df, "Gold 22K", CONFIG["LONG_MA"]),
+        "avg90": moving_average(df, "Gold 22K", CONFIG["VERY_LONG_MA"]),
+        "silver_avg7": moving_average(df, "Silver", CONFIG["SHORT_MA"]),
+        "highest": highest_price(df, "Gold 22K"),
+        "lowest": lowest_price(df, "Gold 22K"),
+        "volatility": volatility(df, "Gold 22K"),
+        "trend": trend(df),
+    }

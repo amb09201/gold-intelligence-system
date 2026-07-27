@@ -1,7 +1,9 @@
 """
-Configuration module for Gold Intelligence System.
-Loads settings from environment variables (use a .env file locally,
-or GitHub Secrets / Colab userdata in automated environments).
+Gold Intelligence System — Configuration
+
+Values that are secret (spreadsheet ID, bot token, chat ID, service account
+credentials) are read from environment variables so the same code works
+locally (.env file) and in GitHub Actions (repo Secrets).
 """
 
 import os
@@ -12,36 +14,63 @@ try:
 except ImportError:
     pass
 
-# --- API Settings ---
-GOLD_API_KEY = os.getenv("GOLD_API_KEY", "")
-GOLD_API_URL = os.getenv("GOLD_API_URL", "https://www.goldapi.io/api/XAU/USD")
+CONFIG = {
 
-# --- Google Sheets Settings ---
-GOOGLE_SHEETS_CREDENTIALS_JSON = os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON", "credentials.json")
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "")
-SHEET_NAME = os.getenv("SHEET_NAME", "GoldPrices")
+    # -----------------------------
+    # Google Sheets
+    # -----------------------------
+    "SPREADSHEET_ID": os.getenv("SPREADSHEET_ID", "1OWl5vSFV3Gbr-M6qL5fTvO6igzmb484mYWUvDkzYm3U"),
+    "WORKSHEET_NAME": os.getenv("WORKSHEET_NAME", "Gold_Rates"),
+    "DASHBOARD_NAME": os.getenv("DASHBOARD_NAME", "Dashboard"),
 
-# --- Telegram Settings ---
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+    # Path to the service account JSON key file.
+    # Locally: point this at your downloaded credentials file.
+    # In GitHub Actions: the workflow writes the GOOGLE_CREDENTIALS secret
+    # out to this path before running main.py.
+    "GOOGLE_SERVICE_ACCOUNT_FILE": os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "service_account.json"),
 
-# --- Analytics Settings ---
-SHORT_MA_WINDOW = int(os.getenv("SHORT_MA_WINDOW", 7))
-LONG_MA_WINDOW = int(os.getenv("LONG_MA_WINDOW", 30))
+    # -----------------------------
+    # GraphQL API (Joyalukkas)
+    # -----------------------------
+    "GRAPHQL_URL": (
+        "https://www.joyalukkas.in/graphql"
+        "?query=query+getgoldrates{"
+        "getgoldrates{"
+        "Id Message Status metal_rate_time "
+        "Data{"
+        "Id BRANCH_CODE BRANCH_NAME "
+        "GOLD_14KT_RATE GOLD_18KT_RATE "
+        "GOLD_22KT_RATE GOLD_24KT_RATE "
+        "SILVER_RATE SILVER_RATE100 "
+        "SILVER_RATE999 PLATINUM_RATE "
+        "__typename}"
+        "__typename}}"
+        "&operationName=getgoldrates"
+        "&variables={}"
+    ),
 
-# --- Logging Settings ---
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FILE = os.getenv("LOG_FILE", "gold_intelligence.log")
+    # -----------------------------
+    # User Settings
+    # -----------------------------
+    "BUY_TARGET": int(os.getenv("BUY_TARGET", 13000)),
+    "CURRENCY": "₹",
 
-# --- Dashboard Settings ---
-DASHBOARD_OUTPUT_PATH = os.getenv("DASHBOARD_OUTPUT_PATH", "dashboard.html")
+    # -----------------------------
+    # Analytics
+    # -----------------------------
+    "SHORT_MA": 7,
+    "LONG_MA": 30,
+    "VERY_LONG_MA": 90,
 
+    # -----------------------------
+    # Duplicate Detection
+    # -----------------------------
+    "SAVE_IF_NO_CHANGE": os.getenv("SAVE_IF_NO_CHANGE", "False") == "True",
 
-def validate_config():
-    """Check that essential config values are present. Raises if critical ones are missing."""
-    missing = []
-    if not GOLD_API_KEY:
-        missing.append("GOLD_API_KEY")
-    if missing:
-        print(f"Warning: missing config values: {', '.join(missing)}")
-    return len(missing) == 0
+    # -----------------------------
+    # Telegram
+    # -----------------------------
+    "ENABLE_TELEGRAM": os.getenv("ENABLE_TELEGRAM", "True") == "True",
+    "BOT_TOKEN": os.getenv("BOT_TOKEN", ""),
+    "CHAT_ID": os.getenv("CHAT_ID", ""),
+}

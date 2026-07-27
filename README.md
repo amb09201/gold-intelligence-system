@@ -1,18 +1,33 @@
 # Gold Intelligence System
 
-An automated system to track gold prices, analyze trends, generate recommendations,
-and deliver insights via dashboard and Telegram notifications.
+Automated tracker for Joyalukkas gold/silver rates: fetches live rates,
+logs history to Google Sheets, computes a Buy Score recommendation, updates
+a live Dashboard tab, and sends a Telegram alert — twice a day via GitHub
+Actions (09:00 and 14:30 IST).
 
-## Features
-- Fetches live/historical gold price data via API
-- Logs data to Google Sheets
-- Performs trend/analytics calculations
-- Generates buy/sell/hold recommendations
-- Publishes a dashboard
-- Sends alerts via Telegram bot
-- Runs daily via GitHub Actions
+## Pipeline
+
+```
+Joyalukkas GraphQL API
+        │
+        ▼
+Google Sheets (Gold_Rates)
+        │
+        ▼
+Analytics (7/30/90-day averages, trend, volatility)
+        │
+        ▼
+Recommendation (Buy Score + label + reasons)
+        │
+        ▼
+Dashboard tab update
+        │
+        ▼
+Telegram alert
+```
 
 ## Project Structure
+
 ```
 gold-intelligence-system/
 ├── README.md
@@ -21,61 +36,77 @@ gold-intelligence-system/
 ├── config.py
 ├── modules/
 │   ├── __init__.py
-│   ├── api.py
-│   ├── sheets.py
-│   ├── analytics.py
-│   ├── recommendation.py
-│   ├── dashboard.py
-│   ├── telegram_bot.py
-│   ├── logger.py
-│   └── utils.py
+│   ├── api.py            # Joyalukkas GraphQL fetch
+│   ├── sheets.py          # Google Sheets read/write
+│   ├── analytics.py       # moving averages, trend, volatility
+│   ├── recommendation.py  # Buy Score engine
+│   ├── dashboard.py       # updates the "Dashboard" tab
+│   ├── telegram_bot.py    # Telegram alert formatting + sending
+│   └── logger.py
 ├── tests/
 │   └── test_api.py
-└── .github/
-    └── workflows/
-        └── daily.yml
+└── .github/workflows/daily.yml
 ```
 
-## Setup
+## Google Sheet setup
 
-1. Clone the repo:
+Your spreadsheet needs a worksheet named `Gold_Rates` with this header row:
+
+```
+Timestamp | Date | Time | Gold 14K | Gold 18K | Gold 22K | Gold 24K | Silver | Platinum | Gold 22K Change | Silver Change | Buy Score | Recommendation | Notes
+```
+
+A second worksheet named `Dashboard` will be created automatically on first run if it doesn't exist.
+
+Share the spreadsheet with your service account's email (found in your
+downloaded JSON key) with **Editor** access.
+
+## Local setup
+
+1. Clone the repo and install dependencies:
    ```bash
    git clone https://github.com/amb09201/gold-intelligence-system.git
    cd gold-intelligence-system
-   ```
-
-2. Install dependencies:
-   ```bash
    pip install -r requirements.txt
    ```
 
-3. Configure environment variables (see `config.py`):
-   - `GOLD_API_KEY`
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
-   - `GOOGLE_SHEETS_CREDENTIALS_JSON`
-   - `SPREADSHEET_ID`
+2. Place your Google service account JSON key file in the project root
+   (e.g. `service_account.json`), or point `GOOGLE_SERVICE_ACCOUNT_FILE` at it.
 
-4. Run locally:
+3. Create a `.env` file:
+   ```
+   SPREADSHEET_ID=1OWl5vSFV3Gbr-M6qL5fTvO6igzmb484mYWUvDkzYm3U
+   GOOGLE_SERVICE_ACCOUNT_FILE=service_account.json
+   BUY_TARGET=13000
+   ENABLE_TELEGRAM=True
+   BOT_TOKEN=your-telegram-bot-token
+   CHAT_ID=your-telegram-chat-id
+   ```
+
+4. Run it:
    ```bash
    python main.py
    ```
 
-## Running on Google Colab
+## GitHub Actions setup (automated runs)
 
-You can also run/test this project directly from Google Colab:
+Add these repository secrets under **Settings → Secrets and variables → Actions**:
 
-```python
-!git clone https://github.com/amb09201/gold-intelligence-system.git
-%cd gold-intelligence-system
-!pip install -r requirements.txt
-!python main.py
+| Secret | Value |
+|---|---|
+| `GOOGLE_CREDENTIALS` | The **entire contents** of your service account JSON key file, pasted as-is |
+| `SPREADSHEET_ID` | Your Google Sheet ID |
+| `BUY_TARGET` | Your target buy price, e.g. `13000` |
+| `BOT_TOKEN` | Your Telegram bot token from @BotFather |
+| `CHAT_ID` | Your Telegram chat ID |
+
+The workflow (`.github/workflows/daily.yml`) runs automatically at 09:00 and
+14:30 IST daily, and can also be triggered manually from the **Actions** tab
+using **Run workflow**.
+
+## Running tests
+
+```bash
+pip install pytest
+pytest tests/
 ```
-
-## Automation
-
-This repo includes a GitHub Actions workflow (`.github/workflows/daily.yml`) that
-runs `main.py` on a daily schedule automatically.
-
-## License
-MIT
