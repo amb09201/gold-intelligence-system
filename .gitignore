@@ -1,15 +1,31 @@
 # Python
 __pycache__/
 *.pyc
+<<<<<<< HEAD
 .venv/
 venv/
 
 # Secrets
 .env
 service_account.json
+=======
+*.pyo
+.venv/
+venv/
+
+# Environment / secrets
+.env
+credentials.json
+>>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
 
 # Logs
 *.log
 
+<<<<<<< HEAD
+=======
+# Dashboard output
+dashboard.html
+
+>>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
 # OS
 .DS_Store

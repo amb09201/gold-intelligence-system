@@ -1,5 +1,6 @@
 # Gold Intelligence System
 
+<<<<<<< HEAD
 Automated tracker for Joyalukkas gold/silver rates: fetches live rates,
 logs history to Google Sheets, computes a Buy Score recommendation, updates
 a live Dashboard tab, and sends a Telegram alert — twice a day via GitHub
@@ -110,3 +111,22 @@ using **Run workflow**.
 pip install pytest
 pytest tests/
 ```
+=======
+## Overview
+
+A personal investment intelligence platform that automatically tracks precious metal prices from Joyalukkas.
+
+## Features
+
+- Live Gold Rate API
+- Historical Database
+- Google Sheets Integration
+- Analytics Engine
+- Buy Recommendation Engine
+- Telegram Notifications
+- GitHub Actions Automation
+
+## Current Status
+
+🚧 Under Development
+>>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
