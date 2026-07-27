@@ -1,16 +1,5 @@
-<<<<<<< HEAD
 requests>=2.31.0
 pandas>=2.0.0
 gspread>=5.10.0
 google-auth>=2.23.0
 python-dotenv>=1.0.0
-=======
-gspread>=6.0.0
-google-auth>=2.30.0
-pandas>=2.2.0
-requests>=2.32.0
-numpy>=2.0.0
-openpyxl>=3.1.0
-matplotlib>=3.9.0
-python-telegram-bot>=21.0
->>>>>>> 80e5a703b5e9a10cbbb83800dbd2a9349bef8b52
