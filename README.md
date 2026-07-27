@@ -58,6 +58,28 @@ Timestamp | Date | Time | Gold 14K | Gold 18K | Gold 22K | Gold 24K | Silver | P
 
 A second worksheet named `Dashboard` will be created automatically on first run if it doesn't exist.
 
+## Multi-user alerts (optional)
+
+To send personalized alerts to more than one person, add a worksheet tab
+named `Users` with these columns:
+
+```
+Name    | ChatID     | BuyTarget | EnableTelegram
+Mahesh  | 987654321  | 13000     | TRUE
+Friend1 | 123456789  | 12800     | TRUE
+```
+
+Each row gets its own Buy Score/recommendation calculated against their own
+`BuyTarget`, sent only to their `ChatID`. Every recipient must first message
+your bot at least once in Telegram (search its username, click **Start**) —
+bots cannot message someone who hasn't messaged them first. To find someone's
+chat ID, have them message a bot like **@userinfobot**, which replies
+instantly with their numeric ID.
+
+If no `Users` tab exists, the system falls back to the single-user
+`CHAT_ID`/`BUY_TARGET` from GitHub Secrets / the `Settings` tab, exactly as
+before.
+
 Share the spreadsheet with your service account's email (found in your
 downloaded JSON key) with **Editor** access.
 

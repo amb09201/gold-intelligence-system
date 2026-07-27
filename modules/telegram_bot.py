@@ -9,19 +9,24 @@ from config import CONFIG
 from modules.logger import log
 
 
-def send_message(text):
-    """Send a Markdown-formatted text message to the configured Telegram chat."""
+def send_message(text, chat_id=None):
+    """
+    Send a Markdown-formatted text message to a Telegram chat.
+    Defaults to CONFIG["CHAT_ID"] if chat_id is not given (single-user mode).
+    """
     if not CONFIG.get("ENABLE_TELEGRAM"):
         log("Telegram disabled (ENABLE_TELEGRAM=False); skipping send.")
         return False
 
-    if not CONFIG.get("BOT_TOKEN") or not CONFIG.get("CHAT_ID"):
-        log("Telegram BOT_TOKEN or CHAT_ID missing; skipping send.", "WARNING")
+    target_chat_id = chat_id or CONFIG.get("CHAT_ID")
+
+    if not CONFIG.get("BOT_TOKEN") or not target_chat_id:
+        log("Telegram BOT_TOKEN or chat_id missing; skipping send.", "WARNING")
         return False
 
     url = f"https://api.telegram.org/bot{CONFIG['BOT_TOKEN']}/sendMessage"
     payload = {
-        "chat_id": CONFIG["CHAT_ID"],
+        "chat_id": target_chat_id,
         "text": text,
         "parse_mode": "Markdown",
     }
@@ -29,10 +34,10 @@ def send_message(text):
     try:
         response = requests.post(url, data=payload, timeout=15)
         response.raise_for_status()
-        log("Telegram message sent.")
+        log(f"Telegram message sent to {target_chat_id}.")
         return True
     except requests.RequestException as exc:
-        log(f"Telegram send failed: {exc}", "ERROR")
+        log(f"Telegram send to {target_chat_id} failed: {exc}", "ERROR")
         return False
 
 

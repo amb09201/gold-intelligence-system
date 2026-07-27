@@ -20,6 +20,7 @@ from modules.recommendation import build_recommendation
 from modules.dashboard import update_dashboard
 from modules.telegram_bot import send_message, format_message
 from modules.settings import apply_settings
+from modules.users import load_users
 from modules.logger import log
 
 
@@ -65,16 +66,25 @@ def run():
     except Exception as exc:
         log(f"Dashboard update failed: {exc}", "ERROR")
 
-    # 6. Telegram alert — respect ALERT_ON_PRICE_CHANGE from the Settings sheet.
-    # If enabled, only send when the price actually moved since last run.
+    # 6. Telegram alerts — one per user in the "Users" sheet tab, each scored
+    # against their own BuyTarget. Falls back to single-user CONFIG if no
+    # "Users" tab exists. Each user's alert also respects ALERT_ON_PRICE_CHANGE.
     price_changed = (gold_change != 0) or (silver_change != 0)
-    should_alert = (not CONFIG.get("ALERT_ON_PRICE_CHANGE", True)) or price_changed
+    alert_on_change_only = CONFIG.get("ALERT_ON_PRICE_CHANGE", True)
+    should_alert = (not alert_on_change_only) or price_changed
 
     if should_alert:
-        message = format_message(gold, gold_change, silver_change, recommendation)
-        send_message(message)
+        users = load_users()
+        for user in users:
+            if not user["enable_telegram"]:
+                log(f"Telegram disabled for {user['name']}; skipping.")
+                continue
+
+            user_recommendation = build_recommendation(gold, history_before, buy_target=user["buy_target"])
+            message = format_message(gold, gold_change, silver_change, user_recommendation)
+            send_message(message, chat_id=user["chat_id"])
     else:
-        log("ALERT_ON_PRICE_CHANGE is True and price is unchanged; skipping Telegram alert.")
+        log("ALERT_ON_PRICE_CHANGE is True and price is unchanged; skipping all Telegram alerts.")
 
     log("Application finished successfully")
 

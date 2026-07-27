@@ -10,10 +10,14 @@ from config import CONFIG
 from modules.analytics import moving_average, trend
 
 
-def calculate_buy_score(gold, history):
+def calculate_buy_score(gold, history, buy_target=None):
     """
     Returns (score: int, reasons: list[str]) based on current rates vs history.
+    buy_target defaults to CONFIG["BUY_TARGET"] but can be overridden per-user.
     """
+    if buy_target is None:
+        buy_target = CONFIG["BUY_TARGET"]
+
     score = 50
     reasons = []
 
@@ -41,7 +45,7 @@ def calculate_buy_score(gold, history):
         score += 10
         reasons.append("Gold is in a short-term downtrend")
 
-    if current <= CONFIG["BUY_TARGET"]:
+    if current <= buy_target:
         score += 20
         reasons.append("Below your target buying price")
 
@@ -64,12 +68,12 @@ def recommendation_label(score):
     return "🔴 Don't Buy"
 
 
-def build_recommendation(gold, history):
+def build_recommendation(gold, history, buy_target=None):
     """
     Convenience wrapper: returns a full recommendation dict ready to feed
     into Sheets, Telegram, and the dashboard.
     """
-    score, reasons = calculate_buy_score(gold, history)
+    score, reasons = calculate_buy_score(gold, history, buy_target=buy_target)
     label = recommendation_label(score)
 
     return {
