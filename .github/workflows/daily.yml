@@ -4,10 +4,18 @@ on:
   schedule:
     # 09:00 IST = 03:30 UTC
     - cron: '30 3 * * *'
-    # 12:00 IST = 06:30 UTC
-    - cron: '30 6 * * *'
-    # 14:30 IST = 09:00 UTC
-    - cron: '0 9 * * *'
+    # 11:00 IST = 05:30 UTC
+    - cron: '30 5 * * *'
+    # 13:00 IST = 07:30 UTC
+    - cron: '30 7 * * *'
+    # 15:00 IST = 09:30 UTC
+    - cron: '30 9 * * *'
+    # 17:00 IST = 11:30 UTC
+    - cron: '30 11 * * *'
+    # 19:00 IST = 13:30 UTC
+    - cron: '30 13 * * *'
+    # 21:00 IST = 15:30 UTC
+    - cron: '30 15 * * *'
   workflow_dispatch: {}
 
 jobs:
