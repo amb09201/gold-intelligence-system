@@ -12,7 +12,7 @@ Pipeline:
 
 import sys
 
-#from config import CONFIG
+from config import CONFIG
 from modules.api import get_gold_rates
 from modules.sheets import should_save, save_to_google_sheet, read_history, calculate_changes
 from modules.analytics import build_analytics_summary
@@ -68,11 +68,13 @@ def run():
 
     # 6. Telegram alerts — one per user in the "Users" sheet tab, each scored
     # against their own BuyTarget. Falls back to single-user CONFIG if no
-    # "Users" tab exists. Alerts are ONLY sent when the gold or silver rate
-    # has actually changed since the last run — no change, no notification.
+    # "Users" tab exists. ALERT_ON_PRICE_CHANGE (from the "Settings" sheet)
+    # controls whether alerts only fire on a rate change, or every run.
     price_changed = (gold_change != 0) or (silver_change != 0)
+    alert_on_change_only = CONFIG.get("ALERT_ON_PRICE_CHANGE", True)
+    should_alert = price_changed or (not alert_on_change_only)
 
-    if price_changed:
+    if should_alert:
         users = load_users()
         for user in users:
             if not user["enable_telegram"]:
@@ -83,7 +85,7 @@ def run():
             message = format_message(gold, gold_change, silver_change, user_recommendation)
             send_message(message, chat_id=user["chat_id"])
     else:
-        log("No change in gold/silver rate; skipping all Telegram alerts.")
+        log("ALERT_ON_PRICE_CHANGE is True and price is unchanged; skipping all Telegram alerts.")
 
     log("Application finished successfully")
 
